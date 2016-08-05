@@ -15,6 +15,12 @@ Camera::Camera() :rotangles{ 0.0f, 0.0f, 0.0f } {
 	//Set the Projection matrix
 	this->camProjection = XMMatrixPerspectiveFovLH(0.4f*3.14f, 1.0f, 1.0f, 1000.f);
 
+	this->DefaultForward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	this->DefaultRight = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	this->DefaultTop = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	this->camForward = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+	this->camRight = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	this->camTop = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
 }
 
 bool Camera::InitCamera(ID3D11Device* d3d11Device, ID3D11DeviceContext* d3d11DevCon) {//default camera load
@@ -79,10 +85,50 @@ void Camera::SetTranslation(float *offset) {
 	this->translation = XMMatrixTranslation(offset[0], offset[1], offset[2]);
 }
 
+void Camera::SetMoveLeftRight(const float & moveLeftRight) {
+	this->moveLeftRight = moveLeftRight;
+}
+
+void Camera::SetMoveBackForward(const float & moveBackForward) {
+	this->moveBackForward = moveBackForward;
+}
+
+void Camera::SetMoveTopBottom(const float & moveTopBottom) {
+	this->moveTopBottom = moveTopBottom;
+}
+
+void Camera::SetCamYaw(const float & camYaw) {
+	this->camYaw = camYaw;
+}
+
+void Camera::SetCamPitch(const float & camPitch) {
+	this->camPitch = camPitch;
+}
+
 void Camera::SetWVPMatrix() {
-	this->rotation = XMMatrixRotationAxis(rotaxeZ, this->rotangles[0]) * XMMatrixRotationAxis(rotaxeY, this->rotangles[1]) * XMMatrixRotationAxis(rotaxeX, this->rotangles[2]);
+	this->rotation = XMMatrixRotationAxis(rotaxeZ, this->rotangles[2]) * XMMatrixRotationAxis(rotaxeY, this->rotangles[1]) * XMMatrixRotationAxis(rotaxeX, this->rotangles[0]);
 	this->World = XMMatrixIdentity();
 	this->World = this->rotation * this->translation * this->scale;
+	/////////////////////////////////////////////////////////////////////////////////////
+	this->camRotationMatrix = XMMatrixRotationRollPitchYaw(this->camPitch, this->camYaw, 0);
+	this->camTarget = XMVector3TransformCoord(DefaultForward, camRotationMatrix);
+	this->camTarget = XMVector3Normalize(this->camTarget);
+
+	XMMATRIX RotateYTempMatrix;
+	RotateYTempMatrix = XMMatrixRotationY(this->camPitch);
+	XMMATRIX RotateXTempMatrix;
+	RotateXTempMatrix = XMMatrixRotationX(this->camYaw);
+
+	this->camRight = XMVector3TransformCoord(this->DefaultRight, RotateYTempMatrix);
+	this->camUp = XMVector3TransformCoord(this->camUp, RotateYTempMatrix);
+	this->camForward = XMVector3TransformCoord(this->DefaultForward, RotateYTempMatrix);
+	this->camTop = XMVector3TransformCoord(this->DefaultTop, RotateYTempMatrix);
+
+	this->camPosition += this->moveLeftRight * this->camRight;
+	this->camPosition += this->moveBackForward * this->camForward;
+	this->camPosition += this->moveTopBottom * this->camTop;
+
+	this->camTarget = this->camPosition + this->camTarget;
 	//Set the View matrix
 	this->camView = XMMatrixLookAtLH(this->camPosition, this->camTarget, this->camUp);
 	this->WVP = this->World * this->camView * this->camProjection;

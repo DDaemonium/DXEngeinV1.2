@@ -38,6 +38,30 @@ bool StaticModel::RenderModel(Camera &camera){
 	return true;
 }
 
+void StaticModel::SetScale(float ScaleX, float ScaleY, float ScaleZ) {
+	float *buffer;
+	for (auto &mesh : this->model) {
+		buffer = mesh.GetScale();
+		mesh.SetScale(buffer[0] * ScaleX, buffer[1] * ScaleY, buffer[2] * ScaleZ);
+	}
+}
+
+void StaticModel::SetRotationAngles(float x, float y, float z) {
+	float *buffer;
+	for (auto &mesh : this->model) {
+		buffer = mesh.GetRotationAngles();
+		mesh.SetRotationAngles(buffer[0] + x, buffer[1] + y, buffer[2] + z);
+	}
+}
+
+void StaticModel::SetTranslation(float OffsetX, float OffsetY, float OffsetZ) {
+	float *buffer;
+	for (auto &mesh : this->model) {
+		buffer = mesh.GetTranslation();
+		mesh.SetTranslation(buffer[0] + OffsetX, buffer[1] + OffsetY, buffer[2] + OffsetZ);
+	}
+}
+
 
 StaticModel::~StaticModel(){
 }

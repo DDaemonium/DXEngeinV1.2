@@ -7,10 +7,6 @@ class StaticModel
 private:
 	ID3D11Device* d3d11Device;
 	ID3D11DeviceContext* d3d11DevCon;
-
-	float scale[3];
-	float rotation[3];
-	float tranlation[3];
 	std::vector<StaticMesh> model;
 	std::string modelName;
 public:
@@ -19,6 +15,9 @@ public:
 	bool LoadModelFBX(const std::string &fileName);
 	bool InitializeModel();
 	bool RenderModel(Camera &camera);
+	void SetScale(float ScaleX, float ScaleY, float ScaleZ);
+	void SetRotationAngles(float x, float y, float z);
+	void SetTranslation(float OffsetX, float OffsetY, float OffsetZ);
 	~StaticModel();
 };
 

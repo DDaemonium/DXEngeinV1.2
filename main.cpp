@@ -30,6 +30,7 @@ bool InitializeWindow(HINSTANCE hInstance,
 	int ShowWnd,
 	int width, int height,
 	bool windowed);
+
 int messageloop();
 
 LRESULT CALLBACK WndProc(HWND hWnd,
@@ -39,7 +40,13 @@ LRESULT CALLBACK WndProc(HWND hWnd,
 
 //Vertex Structure and Vertex Layout (Input Layout)//
 
+float moveLeftRight = 0.0f;
+float moveBackForward = 0.0f;
+float moveTopBottom = 0.0f;
 
+float camYaw = 0.0f;
+float camPitch = 0.0f;
+DIMOUSESTATE mouseLastState;
 
 Camera camera;
 std::unique_ptr<DirectX11Engein::DirectX11Engein> DXEngein;
@@ -74,7 +81,7 @@ int WINAPI WinMain(HINSTANCE hInstance,	//Main windows function
 		return 0;
 	}
 
-	SModel->LoadModelFBX("C:\\Users\\user\\Desktop\\111.FBX");
+	SModel->LoadModelFBX("C:\\Users\\user\\Desktop\\Robot.FBX");
 	SModel->InitializeModel();
 	if (!camera.InitCamera(DXEngein->d3d11Device, DXEngein->d3d11DevCon)) {	//Initialize our camera
 		MessageBox(0, L"Camera Initialization - Failed",
@@ -152,6 +159,54 @@ bool InitializeWindow(HINSTANCE hInstance,
 	return true;
 }
 
+void UpdateCamera() {
+	auto keyboardState = dxInput->GetKeyboardState();
+	auto mouseCurrState = dxInput->GetMouseState();
+	float speed = 1.f;
+	float scale = 0.0f;
+	if (keyboardState[DIK_A] & 0x80) {
+		moveLeftRight -= speed;
+	}
+	if (keyboardState[DIK_D] & 0x80) {
+		moveLeftRight += speed;
+	}
+	if (keyboardState[DIK_W] & 0x80) {
+		moveBackForward += speed;
+	}
+	if (keyboardState[DIK_S] & 0x80) {
+		moveBackForward -= speed;
+	}
+	if (keyboardState[DIK_UP] & 0x80) {
+		moveTopBottom += speed;
+	}
+	if (keyboardState[DIK_DOWN] & 0x80) {
+		moveTopBottom -= speed;
+	}
+	if (keyboardState[DIK_LEFT] & 0x80) {
+		scale -= 0.01f;
+	}
+	if (keyboardState[DIK_RIGHT] & 0x80) {
+		scale += 0.01f;
+	}
+	if ((mouseCurrState->lX != mouseLastState.lX) || (mouseCurrState->lY != mouseLastState.lY)) {
+		camYaw += mouseLastState.lX * 0.001f;
+
+		camPitch += mouseCurrState->lY * 0.001f;
+
+		mouseLastState = *mouseCurrState;
+	}
+	camera.SetCamPitch(camPitch);
+	camera.SetCamYaw(camYaw);
+	camera.SetMoveBackForward(moveBackForward);
+	camera.SetMoveLeftRight(moveLeftRight);
+	camera.SetMoveTopBottom(moveTopBottom);
+	SModel->SetRotationAngles(scale, scale, scale);
+	moveLeftRight = 0.0f;
+	moveBackForward = 0.0f;
+	moveTopBottom = 0.0f;
+	return;
+}
+
 void UpdateScene() {
 	rot += .0005f;
 	if (rot > 6.28f)
@@ -214,10 +269,12 @@ int messageloop() {
 				break;
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
+
 		}
 		else {
 			// run game code  
 			dxInput->UpdateState();
+			UpdateCamera();
 			UpdateScene();
 			DrawScene();
 		}

@@ -51,7 +51,8 @@ float4 PS(VS_OUTPUT input) : SV_TARGET{
 	float4 litColor = mapDiffuse * (ambient + diffuse) + spec;
 	// Common to take alpha from diffuse material.
 	litColor.a = material.Diffuse.a * mapDiffuse.a;
-	return litColor;
+	//return litColor;
+	return mapDiffuse;
 }
 
 
